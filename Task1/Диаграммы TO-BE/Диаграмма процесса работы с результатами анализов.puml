@@ -1,0 +1,64 @@
+@startuml
+
+title Процесс работы с результатами анализов (TO-BE)
+
+actor "Пациент" as Patient
+actor "Врач" as Doctor
+
+component "Портал для пациентов\n(Web)" as PatientPortal
+component "Мобильное\nприложение" as MobileApp
+component "Портал врача\n(Web)" as DoctorPortal
+
+component "Keycloak\nАутентификация" as Auth
+component "HashiCorp Vault\nУправление ключами" as Vault
+
+component "Laboratory Analysis Service\nИнтеграция с лабораторией\n+ Обработка анализов" as LabAnalysisService
+database "Analysis Results DB\n[ENCRYPTED]\n[PHI]" as AnalysisDB
+
+component "Medical Records Service\nМедицинские записи" as MedicalService
+database "Medical Records DB\n[ENCRYPTED]\n[PHI]" as MedicalDB
+
+component "Notification Service\nУведомления" as NotificationService
+database "Notification DB\n[ENCRYPTED]" as NotificationDB
+
+component "Data Lake\nАналитика" as DataLake
+database "Anonymized Analytics\n[ANONYMIZED]" as AnalyticsDB
+
+rectangle "Внешняя лаборатория" as ExternalLab
+
+Doctor --> DoctorPortal : Создание направления\n[ID пациента, тип анализа]
+DoctorPortal --> Auth : Аутентификация врача\n[Логин, пароль, 2FA]
+DoctorPortal --> MedicalService : Сохранение направления\n[Encrypted PHI]
+MedicalService --> Vault : Получение ключей\n[Ключи шифрования]
+MedicalService --> MedicalDB : Сохранение\n[Направление + Patient ID]
+
+MedicalService --> LabAnalysisService : Отправка в лабораторию\n[Обезличенные данные]
+LabAnalysisService --> ExternalLab : Заказ анализа\n[Без PII, только ID]
+
+ExternalLab --> LabAnalysisService : Результаты анализов\n[Результаты + ID]
+LabAnalysisService --> Vault : Получение ключей\n[Ключи для расшифровки]
+LabAnalysisService --> AnalysisDB : Сохранение результатов\n[Encrypted PHI]
+
+LabAnalysisService --> NotificationService : Уведомление о готовности\n[Patient ID, Test ID]
+NotificationService --> NotificationDB : Сохранение задачи\n[Encrypted notification data]
+NotificationService --> MobileApp : Push-уведомление\n[Результаты готовы]
+NotificationService --> Doctor : Уведомление врачу\n[Результаты пациента]
+
+Patient --> PatientPortal : Вход в личный кабинет\n[Логин, пароль]
+Patient --> MobileApp : Вход в приложение\n[Логин, пароль]
+PatientPortal --> Auth : Аутентификация\n[2FA обязательна]
+MobileApp --> Auth : Аутентификация\n[2FA обязательна]
+
+PatientPortal --> LabAnalysisService : Запрос результатов\n[Patient ID только свои]
+MobileApp --> LabAnalysisService : Запрос результатов\n[Patient ID только свои]
+LabAnalysisService --> PatientPortal : Личные результаты\n[Только данные пациента]
+LabAnalysisService --> MobileApp : Личные результаты\n[Только данные пациента]
+
+Doctor --> DoctorPortal : Запрос результатов\n[ID пациента]
+DoctorPortal --> LabAnalysisService : Запрос с проверкой прав\n[Doctor ID + Patient ID]
+LabAnalysisService --> DoctorPortal : Результаты пациента\n[Только авторизованные данные]
+
+LabAnalysisService --> DataLake : Обезличенные данные\n[Статистика без PII]
+DataLake --> AnalyticsDB : Сохранение для ML/AI\n[Анонимизированные данные]
+
+@enduml

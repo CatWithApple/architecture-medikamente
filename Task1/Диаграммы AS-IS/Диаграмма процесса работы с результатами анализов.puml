@@ -1,0 +1,21 @@
+@startuml
+
+title Процесс работы с результатами анализов (AS-IS)
+
+actor "Пациент" as Patient
+actor "Врач" as Doctor
+
+rectangle "Лаборатория" as Lab
+
+rectangle "Общий диск" as SharedDrive {
+    database "Excel файл\n(Учёт анализов)" as ExcelAnalysis
+    database "Сканы результатов" as ScanResults
+}
+
+Patient -> Lab : Сдача анализов\n[По направлению]
+Lab -> Doctor : Бумажные результаты\n[Почта/курьер]
+Doctor -> ScanResults : Сканирование результатов
+Doctor -> ExcelAnalysis : Ручной ввод\n[ФИО, дата, тип анализа]
+Doctor -> Patient : Выдача копии результатов
+
+@enduml

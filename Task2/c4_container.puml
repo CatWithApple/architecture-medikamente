@@ -1,0 +1,99 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+title Диаграмма контейнеров медицинской платформы "Медикаменте" (TO-BE)
+
+Person(patient, "Пациент", "Записывается на приём, получает услуги")
+Person(doctor, "Врач", "Ведёт приём, работает с медданными")
+Person(reception, "Ресепшн", "Управляет записями")
+Person(cashier, "Кассир", "Обрабатывает платежи")
+Person(analyst, "Аналитик", "Работает с обезличенными данными")
+
+Container(mobile_app, "Мобильное приложение", "iOS/Android", "Приложение для пациентов")
+Container(patient_portal, "Портал пациентов", "React", "Веб-портал для пациентов")
+Container(staff_portal, "Портал сотрудников", "React", "Веб-портал для персонала")
+
+Container(api_gateway, "API Gateway", "Kong", "Единая точка входа, маршрутизация, rate limiting")
+
+Container(keycloak, "Keycloak", "Identity Provider", "Аутентификация и авторизация (RBAC/ABAC)")
+Container(vault, "HashiCorp Vault", "Secret Management", "Управление ключами шифрования")
+
+Container(crm_service, "CRM Service", "Java/Spring", "Управление записями пациентов с шифрованием PII")
+Container(medical_service, "Medical Records Service", "Java/Spring", "Медицинские записи с шифрованием PHI")
+Container(lab_service, "Lab Analysis Service", "Java/Spring", "Интеграция с лабораториями (обезличенные данные)")
+Container(notification_service, "Notification Service", "Java/Spring", "Уведомления с шифрованием контактов")
+Container(payment_service, "Payment Service", "Java/Spring", "Обработка платежей с токенизацией")
+
+Container(audit_service, "Audit Service", "Java/Spring", "Централизованный аудит доступа к данным")
+Container(anonymization_service, "Anonymization Service", "Python", "Обезличивание данных для аналитики")
+Container(data_lake, "Data Lake", "Apache Spark", "Обработка обезличенных данных")
+
+Container(monitoring, "Мониторинг", "ELK Stack", "Сбор логов, мониторинг безопасности")
+
+ContainerDb(crm_db, "CRM Database", "PostgreSQL + TDE", "Зашифрованные данные пациентов [PII][ENCRYPT]")
+ContainerDb(medical_db, "Medical Database", "PostgreSQL + TDE", "Зашифрованные медицинские данные [PHI][ENCRYPT]")
+ContainerDb(lab_db, "Lab Database", "PostgreSQL + TDE", "Результаты анализов [PHI][ENCRYPT]")
+ContainerDb(notification_db, "Notification Database", "PostgreSQL + TDE", "Задачи уведомлений [PII][ENCRYPT]")
+ContainerDb(payment_db, "Payment Database", "PostgreSQL + TDE", "Токенизированные платежи [FIN][ENCRYPT]")
+ContainerDb(audit_db, "Audit Database", "PostgreSQL", "Журналы аудита [AUDIT][RETENTION]")
+ContainerDb(analytics_db, "Analytics Database", "ClickHouse", "Обезличенные данные [ANONYMIZED][PUBLIC]")
+
+System_Ext(lab_system, "Лаборатория", "Внешняя лаборатория")
+System_Ext(payment_gateway, "Платёжный шлюз", "Внешний платёжный сервис")
+System_Ext(sms_service, "SMS Service", "Внешний SMS-сервис")
+System_Ext(email_service, "Email Service", "Внешний email-сервис")
+
+Rel(patient, mobile_app, "Использует (2FA)", "HTTPS")
+Rel(patient, patient_portal, "Использует (2FA)", "HTTPS")
+Rel(doctor, staff_portal, "Использует (2FA)", "HTTPS")
+Rel(reception, staff_portal, "Использует (2FA)", "HTTPS")
+Rel(cashier, staff_portal, "Использует (2FA)", "HTTPS")
+Rel(analyst, staff_portal, "Использует (2FA)\nРаботает с обезличенными данными", "HTTPS")
+
+Rel(mobile_app, api_gateway, "API вызовы", "HTTPS/JSON")
+Rel(patient_portal, api_gateway, "API вызовы", "HTTPS/JSON")
+Rel(staff_portal, api_gateway, "API вызовы", "HTTPS/JSON")
+
+Rel(api_gateway, keycloak, "Проверка токенов", "HTTPS")
+
+Rel(api_gateway, crm_service, "CRM операции", "HTTPS")
+Rel(api_gateway, medical_service, "Медицинские данные", "HTTPS")
+Rel(api_gateway, lab_service, "Лабораторные данные", "HTTPS")
+Rel(api_gateway, notification_service, "Уведомления", "HTTPS")
+Rel(api_gateway, payment_service, "Платежи", "HTTPS")
+
+Rel(crm_service, vault, "Ключи шифрования PII", "HTTPS")
+Rel(medical_service, vault, "Ключи шифрования PHI", "HTTPS")
+Rel(lab_service, vault, "Ключи шифрования PHI", "HTTPS")
+Rel(notification_service, vault, "Ключи шифрования контактов", "HTTPS")
+Rel(payment_service, vault, "Ключи токенизации", "HTTPS")
+
+Rel(crm_service, crm_db, "Зашифрованные данные пациентов", "TCP/TLS")
+Rel(medical_service, medical_db, "Зашифрованные медданные", "TCP/TLS")
+Rel(lab_service, lab_db, "Зашифрованные результаты", "TCP/TLS")
+Rel(notification_service, notification_db, "Зашифрованные задачи", "TCP/TLS")
+Rel(payment_service, payment_db, "Токенизированные платежи", "TCP/TLS")
+
+Rel(crm_service, audit_service, "Логи доступа к PII", "HTTPS")
+Rel(medical_service, audit_service, "Логи доступа к PHI", "HTTPS")
+Rel(lab_service, audit_service, "Логи доступа к результатам", "HTTPS")
+Rel(payment_service, audit_service, "Логи финансовых операций", "HTTPS")
+Rel(audit_service, audit_db, "Журналы аудита", "TCP/TLS")
+
+Rel(anonymization_service, crm_db, "Чтение для обезличивания", "TCP/TLS")
+Rel(anonymization_service, medical_db, "Чтение для обезличивания", "TCP/TLS")
+Rel(anonymization_service, lab_db, "Чтение для обезличивания", "TCP/TLS")
+Rel(anonymization_service, vault, "Ключи для расшифровки", "HTTPS")
+Rel(anonymization_service, data_lake, "Обезличенные данные", "HTTPS")
+Rel(data_lake, analytics_db, "Аналитические данные", "TCP/TLS")
+
+Rel(api_gateway, monitoring, "Логи доступа", "TCP")
+Rel(audit_service, monitoring, "Логи аудита", "TCP")
+Rel(vault, monitoring, "Логи доступа к ключам", "TCP")
+
+Rel(lab_service, lab_system, "Обезличенные заказы/результаты", "HTTPS/REST")
+Rel(payment_service, payment_gateway, "Токенизированные платежи", "HTTPS/REST")
+Rel(notification_service, sms_service, "SMS без PII", "HTTPS/REST")
+Rel(notification_service, email_service, "Email без PII", "HTTPS/REST")
+
+@enduml

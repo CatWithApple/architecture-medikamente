@@ -1,0 +1,18 @@
+@startuml
+
+title Процесс приёма пациента врачом (AS-IS)
+
+actor "Пациент" as Patient
+actor "Врач" as Doctor
+
+rectangle "Общий диск" as SharedDrive {
+    database "Excel файл\n(Медкарты)" as MedCards
+    database "Сканы документов\n(PDF/JPG)" as Scans
+}
+
+Patient -> Doctor : Личный приём\n[Жалобы, анамнез, симптомы]
+Doctor -> MedCards : Ручное заполнение\n[Диагноз, назначения, анамнез,\nрезультаты осмотра]
+Doctor -> Scans : Сохранение документов\n[PDF/JPG файлы]
+Doctor -> Patient : Бумажные документы\n[Рецепты, направления, справки]
+
+@enduml
