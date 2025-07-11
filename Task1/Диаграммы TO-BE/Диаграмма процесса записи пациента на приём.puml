@@ -1,0 +1,54 @@
+@startuml
+
+title Процесс записи пациента на приём (TO-BE)
+
+actor "Пациент" as Patient
+actor "Сотрудник\nресепшена" as Reception
+
+component "Портал для клиентов\n(Web)" as WebPortal
+component "Мобильное\nприложение" as MobileApp
+
+component "Портал ресепшена\n(Web)" as ReceptionPortal
+
+component "Keycloak\nАутентификация" as Auth
+component "HashiCorp Vault\nУправление ключами" as Vault
+
+component "CRM сервис\nОбработка записей" as CRM
+database "CRM База данных\n[ENCRYPTED]\n[PII]" as CRMDb
+
+component "Notification Service\nОтправка уведомлений" as Notifications
+database "Notification DB\n[ENCRYPTED]" as NotificationDb
+
+component "Data Lake\nАналитика и отчёты" as DataLake
+database "Обезличенные данные\n[ANONYMIZED]" as Analytics
+
+Patient --> WebPortal : Запись через сайт\n[ФИО, контакты, дата]
+Patient --> MobileApp : Запись через приложение\n[ФИО, контакты, дата]
+Patient --> Reception : Звонок/Визит\n[ФИО, контакты, жалобы]
+
+Reception --> ReceptionPortal : Ввод данных записи\n[Данные пациента]
+
+WebPortal --> Auth : Аутентификация\n[Логин, пароль, 2FA]
+MobileApp --> Auth : Аутентификация\n[Логин, пароль, 2FA]
+ReceptionPortal --> Auth :  Аутентификация\n[Логин, пароль, 2FA, Роль сотрудника]
+
+CRM --> Vault : Получение ключей\n[Ключи для PII]
+
+WebPortal --> CRM : Создание записи\n[Зашифрованные данные]
+MobileApp --> CRM : Создание записи\n[Зашифрованные данные]
+ReceptionPortal --> CRM : Создание записи\n[Зашифрованные данные]
+
+CRM --> CRMDb : Сохранение записи\n[Encrypted PII]
+
+CRM --> Notifications : Запрос уведомления\n[ID записи, тип]
+Notifications --> NotificationDb : Сохранение задачи\n[ID пациента, тип]
+Notifications --> MobileApp : Push-уведомление\n[Подтверждение]
+Notifications --> Patient : SMS/Email\n[Напоминание]
+
+Patient --> MobileApp : Подтверждение/Отмена\n[Статус записи]
+MobileApp --> CRM : Обновление статуса\n[ID записи, статус]
+
+CRM --> DataLake : Обезличенные данные\n[Анонимизированная статистика]
+DataLake --> Analytics : Сохранение для аналитики\n[Без PII данных]
+
+@enduml

@@ -1,0 +1,31 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+title Контекстная диаграмма системы "Медикаменте" (TO-BE)
+
+Person(patient, "Пациент", "Записывается на приём, получает услуги, просматривает результаты анализов")
+Person(doctor, "Врач", "Ведёт приём пациентов, назначает анализы, работает с медицинскими данными")
+Person(reception, "Сотрудник ресепшена", "Управляет записями пациентов, ведёт журнал приёмов")
+Person(cashier, "Кассир", "Обрабатывает платежи, ведёт учёт оплат")
+Person(analyst, "Аналитик", "Работает с обезличенными данными для построения отчётов")
+
+System(medical_platform, "Медицинская платформа", "Централизованная система управления медицинскими данными")
+
+System_Ext(lab_system, "Лаборатория", "Внешняя лаборатория для проведения анализов")
+System_Ext(payment_gateway, "Платёжный шлюз", "Внешний сервис для обработки платежей")
+System_Ext(sms_service, "SMS-сервис", "Сервис для отправки SMS-уведомлений")
+System_Ext(email_service, "Email-сервис", "Сервис для отправки email-уведомлений")
+
+Rel(patient, medical_platform, "Записывается на приём, просматривает результаты", "HTTPS, Mobile App")
+Rel(doctor, medical_platform, "Ведёт медицинские записи, назначает анализы", "HTTPS, Web Portal")
+Rel(reception, medical_platform, "Управляет записями, ведёт журнал", "HTTPS, Web Portal")
+Rel(cashier, medical_platform, "Обрабатывает платежи, ведёт учёт", "HTTPS, Web Portal")
+Rel(analyst, medical_platform, "Работает с обезличенными данными", "HTTPS, BI Tools")
+
+Rel(medical_platform, lab_system, "Отправляет заказы на анализы (обезличенные)", "HTTPS, REST API")
+Rel(lab_system, medical_platform, "Возвращает результаты анализов", "HTTPS, REST API")
+Rel(medical_platform, payment_gateway, "Обрабатывает платежи", "HTTPS, REST API")
+Rel(medical_platform, sms_service, "Отправляет SMS-уведомления", "HTTPS, REST API")
+Rel(medical_platform, email_service, "Отправляет email-уведомления", "HTTPS, REST API")
+
+@enduml

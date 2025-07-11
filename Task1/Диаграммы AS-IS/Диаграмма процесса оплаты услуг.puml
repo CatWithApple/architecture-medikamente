@@ -1,0 +1,22 @@
+@startuml
+
+title Процесс оплаты услуг (AS-IS)
+
+actor "Пациент" as Patient
+actor "Кассир" as Cashier
+
+rectangle "ККМ" as CashRegister
+
+rectangle "Общий диск" as SharedDrive {
+    database "Excel файл\n(Учёт платежей)" as ExcelPayments
+}
+
+database "1С:Бухгалтерия" as Accounting1C
+
+Patient -> Cashier : Оплата услуг\n[Наличные/карта + документы]
+Cashier -> CashRegister : Проведение платежа\n[ФИО, сумма, услуга]
+CashRegister -> Accounting1C : Автоматическая передача\n[TCP/IP, OLE]\n[Сумма, дата, номер чека]
+Cashier -> ExcelPayments : Дублирование записи\n[ФИО, сумма, услуга, дата,\nномер договора]
+Cashier -> Patient : Чек, документы\n[Копия договора]
+
+@enduml

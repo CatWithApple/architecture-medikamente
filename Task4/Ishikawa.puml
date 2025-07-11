@@ -1,0 +1,80 @@
+@startuml
+title Диаграмма Исикавы
+
+rectangle "Снижение производительности\nи качества системы\nпри миграции" as Problem
+
+rectangle "Инфраструктура" as Infrastructure
+rectangle "Программное обеспечение" as Software
+rectangle "Интеграция" as Integration
+rectangle "Персонал" as Personnel
+rectangle "Процессы" as Processes
+rectangle "Данные" as Data
+
+Infrastructure --> Problem
+Software --> Problem
+Integration --> Problem
+Personnel --> Problem
+Processes --> Problem
+Data --> Problem
+
+rectangle "Недостаточная\nпроизводительность\nсерверов" as InfraPerf
+rectangle "Проблемы с\nсетевой\nинфраструктурой" as InfraNetwork
+rectangle "Отсутствие\nотказоустойчивости" as InfraResilience
+rectangle "Неготовность к\nмасштабированию" as InfraScale
+
+InfraPerf --> Infrastructure
+InfraNetwork --> Infrastructure
+InfraResilience --> Infrastructure
+InfraScale --> Infrastructure
+
+rectangle "Архитектурные\nпроблемы\nмонолита" as SoftArch
+rectangle "Технический\nдолг" as SoftDebt
+rectangle "Неготовность\nкомпонентов" as SoftComponents
+rectangle "Проблемы с\nбезопасностью" as SoftSecurity
+
+SoftArch --> Software
+SoftDebt --> Software
+SoftComponents --> Software
+SoftSecurity --> Software
+
+rectangle "Сложность\nмиграции данных" as IntegrationData
+rectangle "Проблемы с\nAPI интеграцией" as IntegrationAPI
+rectangle "Несовместимость\nсистем" as IntegrationCompat
+rectangle "Внешние\nзависимости" as IntegrationExt
+
+IntegrationData --> Integration
+IntegrationAPI --> Integration
+IntegrationCompat --> Integration
+IntegrationExt --> Integration
+
+rectangle "Недостаток\nэкспертизы" as PersonnelSkills
+rectangle "Сопротивление\nизменениям" as PersonnelResistance
+rectangle "Нехватка\nресурсов" as PersonnelResources
+rectangle "Проблемы с\nобучением" as PersonnelTraining
+
+PersonnelSkills --> Personnel
+PersonnelResistance --> Personnel
+PersonnelResources --> Personnel
+PersonnelTraining --> Personnel
+
+rectangle "Отсутствие\nплана миграции" as ProcessPlan
+rectangle "Неопределённые\nSLA" as ProcessSLA
+rectangle "Проблемы с\nтестированием" as ProcessTest
+rectangle "Отсутствие\nмониторинга" as ProcessMonitor
+
+ProcessPlan --> Processes
+ProcessSLA --> Processes
+ProcessTest --> Processes
+ProcessMonitor --> Processes
+
+rectangle "Качество\nисходных данных" as DataQuality
+rectangle "Объём данных\nдля миграции" as DataVolume
+rectangle "Проблемы с\nконфиденциальностью" as DataPrivacy
+rectangle "Консистентность\nданных" as DataConsistency
+
+DataQuality --> Data
+DataVolume --> Data
+DataPrivacy --> Data
+DataConsistency --> Data
+
+@enduml
